@@ -61,40 +61,63 @@ class Tree
     nil
   end
 
-  def inorder(root)
-    unless block_given?
+  def level_order(root)
+    return if root.nil?
+
+    data_array = []
+    queue = []
+    queue.push(root)
+    until queue.empty?
+      node = queue[0]
+      yield node.data if block_given?
+      data_array << node.data
+      queue.push(node.left) unless node.left.nil?
+      queue.push(node.right) unless node.right.nil?
+      queue.delete_at(0)
+    end
+    data_array unless block_given?
+  end
+
+  def inorder(root, &block)
+    return if root.nil?
+
+    if block_given?
+      inorder(root.left, &block)
+      yield root.data
+      inorder(root.right, &block)
+    else
       data_array = []
       inorder(root) { |node_data| data_array << node_data }
+      data_array
     end
-    return if root.nil?
-
-    inorder(root.left)
-    yield root.data
-    inorder(root.right)
   end
 
-  def preorder(root)
-    unless block_given?
+  def preorder(root, &block)
+    return if root.nil?
+
+    if block_given?
+      yield root.data
+      preorder(root.left, &block)
+      preorder(root.right, &block)
+    else
       data_array = []
       preorder(root) { |node_data| data_array << node_data }
+      data_array
     end
-    return if root.nil?
-
-    yield root.data
-    preorder(root.left)
-    preorder(root.right)
   end
 
-  def postorder(root)
-    unless block_given?
-      data_array = []
-      postorder(root) { |node_data| data_array << node_data }
-    end
+  def postorder(root, &block)
     return if root.nil?
 
-    postorder(root.left)
-    postorder(root.right)
-    yield root.data
+    if block_given?
+      postorder(root.left, &block)
+      postorder(root.right, &block)
+      yield root.data
+    else
+      data_array = []
+      postorder(root) { |node_data| data_array << node_data }
+      data_array
+    end
   end
 
   def pretty_print(node = @root, prefix = '', is_left = true)
