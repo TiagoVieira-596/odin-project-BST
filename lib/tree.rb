@@ -4,10 +4,11 @@ class Tree
   attr_accessor :root
 
   def initialize(array)
-    @root = build_tree(array, 0, array.length - 1)
+    sorted_array = array.sort.uniq
+    @root = build_tree(sorted_array)
   end
 
-  def build_tree(sorted_array, start_position, end_position)
+  def build_tree(sorted_array, start_position = 0, end_position = sorted_array.length - 1)
     return nil if start_position > end_position
 
     middle = start_position + ((end_position - start_position) / 2).floor
@@ -21,7 +22,9 @@ class Tree
   def insert(value)
     # traverse into the correct leaf node
     node = @root
-    node = node.compare(node, value) ? node.left : node.right until node.left.nil? && node.right.nil?
+    until (node.left.nil? && node.right.nil?) || node.left.nil? && value <= node.data || node.right.nil? && value > node.data
+      node = node.compare(node, value) ? node.left : node.right
+    end
     # append value
     node.compare(node, value) ? node.left = Node.new(value) : node.right = Node.new(value)
   end
@@ -118,6 +121,49 @@ class Tree
       postorder(root) { |node_data| data_array << node_data }
       data_array
     end
+  end
+
+  def height(node)
+    return -1 if node.nil?
+
+    height = 0
+    tree = @root
+    # get the height of the left and right subtrees
+    height_left = height(node.left)
+    height_right = height(node.right)
+    # assign the highest value to be the current height
+    height = height_left >= height_right ? height_left + 1 : height_right + 1
+    height
+  end
+
+  def depth(node)
+    return -1 if node.nil?
+
+    depth = 0
+    tree = @root
+    until tree.nil?
+      break if tree.data == node.data
+
+      tree = tree.compare(tree, node.data) ? tree.left : tree.right
+      depth += 1
+    end
+    depth
+  end
+
+  def balanced?(root)
+    return true if root.nil?
+
+    balanced = true
+    height_left = height(root.left)
+    height_right = height(root.right)
+    balanced = false if height_left - height_right > 1 || height_right - height_left > 1
+    balanced
+  end
+
+  def rebalance(root)
+    tree_data_array = inorder(root)
+    @root = nil
+    @root = build_tree(tree_data_array.sort)
   end
 
   def pretty_print(node = @root, prefix = '', is_left = true)
